@@ -1,0 +1,23 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+my ($opt_b,$opt_e);
+
+my $result = GetOptions( "b|beginning" => \$opt_b,
+                         "e|end"       => \$opt_e );
+my $term = shift @ARGV;
+die "No term" unless $term;
+
+my @paths = split /:/, $ENV{PATH};
+push @paths, split /:/, $ENV{SPATH};
+
+my $search_key = '';
+$search_key .= '*' unless $opt_b;
+$search_key .= $term;
+$search_key .= '*' unless $opt_e;
+
+map { +print `find $_ -iname '$search_key'` } @paths;

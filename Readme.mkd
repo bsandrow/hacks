@@ -7,3 +7,8 @@ pb-leecher
 ----------
 
 Scrapes image URLs off of a PhotoBucket.com album URL.
+
+perl-pathsearch
+---------------
+
+Searches for a pattern in @INC.
