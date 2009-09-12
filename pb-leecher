@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+#
+
+use LWP::Simple;
+
+# SETUP
+$|++;
+$URL = $ARGV[1];
+
+# INITIAL ERROR CHECKING
+die "need a url" unless $URL || $URL -ne "";
+# TODO maybe some url checking here
+
+# BODY
+
+$html_file = get($URL);
+while ( $html_file =~ /<input.*?id="urlcode\d*".*?value="(http:.*?)".*?>/g )
+{
+    print "$1\n";
+}
+
+1;

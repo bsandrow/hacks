@@ -2,3 +2,8 @@ pathsearch
 ----------
 
 Searches through directories in $PATH for a pattern.
+
+pb-leecher
+----------
+
+Scrapes image URLs off of a PhotoBucket.com album URL.
