@@ -1,0 +1,15 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+
+my @paths = split /:/, $ENV{PATH};
+push @paths, split /:/, $ENV{SPATH};
+
+my $search_key = '';
+
+$search_key .= '*' unless $opt_a;
+$search_key .= $opt_t;
+$search_key .= '*' unless $opt_b;
+
+map { +print `find $_ -iname '$search_key'` } @paths;
