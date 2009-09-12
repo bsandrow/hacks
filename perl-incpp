@@ -1,0 +1,9 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+
+my $i=0;
+print "Contents of \@INC:\n";
+map { +print "\t[$i] $_\n"; ++$i; } @INC;
+exit 0;

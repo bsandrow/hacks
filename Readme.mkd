@@ -1,14 +1,21 @@
-pathsearch
-----------
+Scripts
+-------
 
-Searches through directories in $PATH for a pattern.
+    pathsearch - $PATH Search
 
-pb-leecher
-----------
+        Searches through $PATH for a supplied pattern.
 
-Scrapes image URLs off of a PhotoBucket.com album URL.
+    pb-leecher - PhotoBucket Leecher
 
-perl-pathsearch
----------------
+        Parses direct links to photos from a PhotoBucket.com album URL.
 
-Searches for a pattern in @INC.
+    perl-pathsearch - Perl Path Search
+
+        Searches through a perl's @INC paths for a supplied pattern.
+
+    perl-incpp - Perl @INC Pretty Print
+
+        Searches through Perl's @INC array of paths for a file with a
+        particular pattern.
+    
+
