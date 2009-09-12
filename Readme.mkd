@@ -1,0 +1,4 @@
+pathsearch
+----------
+
+Searches through directories in $PATH for a pattern.
