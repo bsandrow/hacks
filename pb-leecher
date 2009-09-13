@@ -1,22 +1,108 @@
 #!/usr/bin/perl
+
+# pb-page-leecher - PhotoBucket Leecher
 #
+#   Parses a PhotoBucket album page for direct links to the images. Launches
+#   wget to pull down the images.
 
+use strict;
+use warnings;
+
+use Data::Dumper;
 use LWP::Simple;
+use Getopt::Std;
 
-# SETUP
-$|++;
-$URL = $ARGV[1];
+my $DOWNLOAD_COMMAND = "wget -q -O FILE URL";
 
-# INITIAL ERROR CHECKING
-die "need a url" unless $URL || $URL -ne "";
-# TODO maybe some url checking here
-
-# BODY
-
-$html_file = get($URL);
-while ( $html_file =~ /<input.*?id="urlcode\d*".*?value="(http:.*?)".*?>/g )
+BEGIN
 {
-    print "$1\n";
+    sub main
+    {
+        my $options    = init();
+        loop_it_baby($options);
+    }
+
+    sub init
+    {
+        my %opts;
+        my %prefs;
+
+        # Grab options
+        getopts('?hd:',\%opts);
+
+        # Process options
+        usage() if exists $opts{h} or exists $opts{'?'};
+        die "$opts{d} is not a directory!" if exists $opts{d} and not -d $opts{d};
+        usage("Must provide at least 1 url!") unless scalar @ARGV;
+
+        $prefs{dest_dir} = $opts{d}  if exists $opts{d};
+        $prefs{dest_dir} = $ENV{PWD} if !exists $opts{d};
+
+        my @urls     = @ARGV;
+        $prefs{urls} = \@urls;
+
+        return \%prefs;
+    }
+
+    sub usage
+    {
+        map { + print "$_\n"; } @_;
+        print <<EOF;
+pb-leecher [options] URL1 [URL2] [URL3] [...]
+
+Options
+    -d      Directory to download to. Defaults to the current directory.
+    -h -?   Prints this help message and exits.
+EOF
+        exit 1;
+    }
+
+    sub loop_it_baby
+    {
+        my $options = shift;
+        for my $page_url (@{$options->{urls}}) {
+            my $image_urls = extract_urls($page_url);
+            map { + download_image($_,$options->{dest_dir}); } @$image_urls;
+        }
+    }
+
+    sub extract_urls
+    {
+        my $url  = shift;
+        my $html = get($url);
+        my @urls = $html =~ m{<label\ for="urlcode\d+">\s*Direct\ Link\s*</label>\s*
+                              <input\ [^>]*value="([^"]*)"}mxg;
+        return \@urls;
+    }
+
+    sub download_image
+    {
+        my $image_url = shift;
+           $image_url =~ m{/([^/]*)$};
+        my $filename  = $1;
+        my $directory = shift;
+        my $tmppath   = "$directory/$filename.part";
+        my $finalpath = "$directory/$filename";
+
+        # process existing files
+        return 1        if -f $finalpath;
+        unlink $tmppath if -f $tmppath;
+
+        # Construct the command
+        my $command = $DOWNLOAD_COMMAND;
+           $command =~ s/FILE/'$tmppath'/;
+           $command =~ s/URL/'$image_url'/;
+
+        print STDOUT "Running: $command\n";
+        system $command;
+
+        if($?) {
+            print STDERR "Error downloading '$image_url'\n";
+            return undef;
+        }
+        rename $tmppath, $finalpath;
+        return 1;
+    }
 }
 
-1;
+main();
