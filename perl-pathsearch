@@ -12,12 +12,11 @@ my $result = GetOptions( "b|beginning" => \$opt_b,
 my $term = shift @ARGV;
 die "No term" unless $term;
 
-my @paths = split /:/, $ENV{PATH};
-push @paths, split /:/, $ENV{SPATH};
+my @paths = @INC;
 
 my $search_key = '';
 $search_key .= '*' unless $opt_b;
 $search_key .= $term;
 $search_key .= '*' unless $opt_e;
 
-map { +print `find $_ -iname '$search_key'` } @paths;
+map { +print `find $_ -iname '$search_key'` if -d $_; } @paths;
