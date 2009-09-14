@@ -26,8 +26,8 @@ BEGIN
     sub usage
     {
         print STDERR <<END_OF_USAGE;
-Usage: futaba-thread-rape [options] URL1 [URL2] [URL3] [...]
-       futaba-thread-rape [options] -l URL_LIST_FILE
+Usage: futaba-thread-get [options] URL1 [URL2] [URL3] [...]
+       futaba-thread-get [options] -l URL_LIST_FILE
 
  -h -?        Prints this help message and exits
  -m           Turns on Url Output Mode. Instead of downloading the images from
