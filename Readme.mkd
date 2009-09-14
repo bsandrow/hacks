@@ -19,4 +19,9 @@ Scripts
         Searches through Perl's @INC array of paths for a file with a
         particular pattern.
     
+    futaba-thread-get - Futaba Image Board Thread Image Getter
 
+        Takes in a list of URLs (from CLI or from a file) to Futaba image board
+        threads and parses out all of the posted images in the threads. Spits
+        out the image urls or downloads them (depending on the CLI options
+        provided).

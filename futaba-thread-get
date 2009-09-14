@@ -1,0 +1,241 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+
+use Data::Dumper;
+use Getopt::Std;
+use LWP::UserAgent;
+
+our $VERSION            = 1.0;
+my $FUTABA_AGENT        = undef;
+my $FUTABA_TIMEOUT      = 10;
+my $FUTABA_PROXY        = 0;
+my $FUTABA_UA           = new LWP::UserAgent;
+my $FUTABA_SCRAPE_INTV  = 10;
+$|++;
+
+BEGIN
+{
+    sub main
+    {
+        my $prefs = init();
+        exit event_loop($prefs);
+    }
+
+    sub usage
+    {
+        print STDERR <<END_OF_USAGE;
+Usage: futaba-thread-rape [options] URL1 [URL2] [URL3] [...]
+       futaba-thread-rape [options] -l URL_LIST_FILE
+
+ -h -?        Prints this help message and exits
+ -m           Turns on Url Output Mode. Instead of downloading the images from
+              the scraped Urls, they are written to STDOUT.
+ -n INTERVAL  Specify the interval (in seconds) between thread scrapes
+ -l URL_FILE  Provide a file with one URL per line to process.
+ -d DIR       Destination directory for the files. (Defaults to \$PWD)
+END_OF_USAGE
+        exit 1;
+    }
+
+    sub init
+    {
+        my %prefs;
+        my %options;
+
+        getopts("ml:d:n:h?",\%options);
+        usage() if exists $options{h} or exists $options{'?'};
+
+        # Setup the LWP::UserAgent instance
+        $FUTABA_UA->env_proxy                if $FUTABA_PROXY;
+        $FUTABA_UA->timeout($FUTABA_TIMEOUT) if $FUTABA_TIMEOUT;
+        $FUTABA_UA->agent($FUTABA_AGENT)     if $FUTABA_AGENT;
+
+        # Setup the scrape interval
+        $prefs{interval} = $options{n} ? $options{n} : $FUTABA_SCRAPE_INTV;
+
+        # Setup download command
+        $prefs{dl_command} = 'wget -q -O FILE URL';
+        `which wget`;
+        die "Could not find wget in \$PATH" if $?;
+
+        # Setup the mode to run in
+        if(exists $options{m}) {
+            $prefs{mode}    = 'proc';
+            $prefs{verbose} = 0;
+        } else {
+            $prefs{mode}    = 'out';
+            $prefs{verbose} = 1;
+        }
+
+        # Populate the url list
+        $prefs{url_list} = [];
+        if(exists $options{l}) {
+            open FILE, "<$options{l}" or die "Error opening file $options{l}: $!";
+            while(<FILE>) {
+                push @{$prefs{url_list}}, $_;
+            }
+        } else {
+            map { +push @{$prefs{url_list}}, $_; } @ARGV;
+        }
+        die "No urls provided" unless scalar @{$prefs{url_list}};
+
+        # Setup the destination directory
+        $prefs{dest_dir} = exists $options{d} ? $options{d} : $ENV{PWD};
+
+        return \%prefs;
+    }
+
+    # load_thread_list
+    #
+    # Loads a list of thread urls from a file. (one url per line)
+    #
+    sub load_thread_list
+    {
+        my $file = shift;
+        open FILE, '<', $file or die "Could not open '$file': $!";
+        my @list = <FILE>;
+        close FILE or die "Could not close '$file': $!";
+        return @list;
+    }
+
+    # event_loop()
+    #
+    # The main loop that continuously runs through each thread url. Returns when
+    # there are no more thread urls to process.
+    #
+    sub event_loop
+    {
+        my $break_loop = 0;
+        my $prefs      = shift;
+
+        while(not $break_loop) {
+            last if scalar @{$prefs->{url_list}};   # no more urls to process
+
+            my $i = 0;
+            my @dead_threads;
+
+            for my $thread_url (@{$prefs->{url_list}}) {
+                my $result = process_thread($prefs,$thread_url);
+                push @dead_threads, $i unless $result;
+                $i++;
+            }
+
+            prune_thread_list($prefs->{url_list},\@dead_threads,$prefs->{verbose});
+
+            print "Sleeping for $prefs->{interval} seconds.\n" if $prefs->{verbose};
+            sleep $prefs->{interval};
+        }
+        return 0;
+    }
+
+    sub prune_thread_list
+    {
+        my ($thread_list, $dead_list, $verbose) = @_;
+
+        return undef unless scalar @$dead_list;
+
+        my $offset = 0;
+        for my $dead_thread_index (@$dead_list) {
+            print "Removing thread url '$thread_list->[$dead_thread_index-$offset]'.\n" if $verbose;
+            splice @$thread_list, $dead_thread_index-$offset, 1;
+            $offset++;
+        }
+
+        return 1;
+    }
+
+    # processes a single thread url. extracts image urls, then either prints
+    # the list or downloads them all depending on the mode
+    sub process_thread
+    {
+        my ($prefs,$thread_url) = @_;
+
+        print "Processing thread url '$thread_url'.\n" if $prefs->{verbose};
+        
+        my $image_url_list = get_image_url_list($thread_url);
+        return undef unless $image_url_list;
+
+        return print_url_list($image_url_list)              if $pref->{mode} eq 'out';
+        return download_url_list($prefs,$image_url_list)    if $pref->{mode} eq 'proc';
+        return undef;
+    }
+
+    # prints out url list to stdout
+    sub print_url_list
+    {
+        my $url_list = shift;
+        map { +print "$_\n"; } @$url_list;
+        return 1;
+    }
+
+    sub download_url_list
+    {
+        my ($prefs,$image_url_list) = @_;
+        
+        if(scalar @$image_url_list < 1) {
+            print "No images. Skipping.\n" if $prefs->{verbose};
+            return 1;
+        }
+
+        for (@$image_url_list) {
+            print "\t$_" if $prefs->{verbose};
+            download_image_url($_,$prefs->{dl_command},$prefs->{dest_dir},$prefs->{verbose});
+        }
+        
+        return 1;
+    }
+
+    sub get_image_url_list
+    {
+        my $thread_url    = shift;
+        my $http_response = $FUTABA_UA->get($thread_url);
+        return undef unless $http_response->is_success;
+
+        # Extract image urls from content
+        my @matches =
+            $http_response->content =~ m!<img\s*.*?\s*src="?([^\s>"]*/thumb/[0-9]*s\.[a-zA-Z]{3})"?!migx;
+        s!thumb/([0-9]*)s\.([a-z]{3})!src/$1.$2!i for (@matches);
+
+        # Construct a base url (some sites use relative urls, and we need to
+        # construct absolute urls
+        $thread_url =~ m{^([a-z]*://[^\s/]*).*$}i;
+        my $urlbase = $1;
+
+        # Build the final list (make sure each url is an absolute url before
+        # returning a list).
+        my @final_list;
+        for my $match (@matches)
+        {
+            $match = "$urlbase$match" if $match =~ m{^/};
+            push @final_list, $match;
+        }
+        return \@final_list;
+    }
+
+    sub download_image_url
+    {
+        my ($image_url,$command,$dest_dir,$verbose) = @_;
+        
+        $filename = $image_url;
+        $filename =~ s{/([^/]*)$}{$1};
+
+        my $tmp_path  = "$dest_dir/$filename.part";
+        my $file_path = "$dest_dir/$filename";
+
+        return 1            if -f $filepath;
+        unlink($tmp_path)   if -f $tmp_path;
+
+        $command =~ s!URL!\'$image_url\'!;
+        $command =~ s!FILE!\"$tmp_path\"!;
+
+        system($command);
+        return undef if $?;
+
+        rename $tmp_path, $file_path;
+        return 1;
+    }
+}
+
+main();
