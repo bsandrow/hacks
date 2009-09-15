@@ -92,3 +92,7 @@ cpansync - CPAN Sync Script
 stt - Set Term Title
     Concatenates all CLI options into a single string and sets the X terminal
     emulater title to that string.
+
+get-uuid-mount - Get Mount Point by UUID
+
+    Returns the mount point for a filesystem by it's UUID.

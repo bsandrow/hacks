@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# get-uuid-mount - Get Mount Point by UUID
+#   Returns the mount point for a filesystem by it's UUID.
+
+function usage()
+{
+    echo <<EOF
+USAGE: get-uuid-mount UUID
+EOF
+}
+
+test -z $1 && usage && exit 1
+UUID=$1
+
+MOUNT_POINT=`mount | grep \`readlink -f "/dev/disk/by-uuid/$UUID"\`| sed 's/^.* on \([^ ]*\) type.*$/\1/'`
+
+test -z $MOUNT_POINT && exit 2
+echo $MOUNT_POINT
