@@ -1,0 +1,281 @@
+#!/usr/bin/perl -w
+
+# cpansync - CPAN Sync Script
+#   Inspired by : http://www.stonehenge.com/merlyn/LinuxMag/col42.html
+
+use strict;
+use warnings;
+
+use URI;
+use Getopt::Long;
+
+use File::Path              qw/ mkpath  /;
+use File::Find              qw/ find    /;
+use File::Basename          qw/ dirname /;
+use File::Spec::Functions   qw/ catfile /;
+use Compress::Zlib          qw/ gzopen
+                                $gzerrno /;
+use LWP::Simple             qw/ mirror
+                                getstore
+                                RC_OK
+                                RC_NOT_MODIFIED /;
+
+$|++;
+
+# FUNCTION main
+#
+sub main {
+    my $options = get_defaults();
+    read_config($options);
+    usage() unless  GetOptions  ( 'u|url=s'     => \$options->{cpan_url},
+                                  'd|dest=s'    => \$options->{dest_dir},
+                                  'h|help'      => \$options->{help},
+                                  'q|quiet'     => \$options->{quiet},
+                                  'getdistros'  => \$options->{get_perl5_distros},
+                                  'p|prune'     => \$options->{prune}, )
+                    and !defined($options->{help});
+    # Check the input settings
+    check_settings($options);
+
+    # Mirror the metadata/index files
+    mirror_indexfiles($options);
+
+    # Process the index files
+    process_modules($options);    
+
+    # Clean up the mirror directory of unlisted files
+    prune_old_files($options) if $options->{prune};
+}
+
+# FUNCTION get_defaults
+#
+# Returns a HASHREF with options that have default values
+# all setup and ready to go
+#
+sub get_defaults
+{
+    my %options;
+    $options{quiet} = 0;
+    $options{get_perl5_distros} = 0;
+    $options{files} = {};
+    return \%options;
+}
+
+# FUNCTION process_modules
+#
+# Runs through all of entries listed in '02packages.details.txt.gz'
+# calling mirror_module() on each one. Skips perl distros
+# unless the get_perl5_distros option is set.
+#
+sub process_modules
+{
+    my $o            = shift;
+    my $details_file = "$o->{dest_dir}/modules/02packages.details.txt.gz";
+    my $gz           = gzopen($details_file,'rb') or die "Cannot open details: $gzerrno";
+    
+    # skip header
+    while($gz->gzreadline($_) > 0 && /\S/) { next; }
+
+    # parse through the entries
+    while($gz->gzreadline($_) > 0)
+    {
+        my ($module,$version,$path) = split;
+        if($path =~ m{/perl-5})
+        {
+            next unless $o->{get_perl5_distros};
+        }
+        mirror_module("authors/id/$path",$o,1);
+    }
+}
+
+
+# FUNCTION prune_old_files
+#
+# Deletes files that were not listed in the details file
+# (i.e. they are not in the $opt->{files} HASHREF).
+#
+sub prune_old_files
+{
+    my $o = shift;
+    find sub {  return unless -f and not $o->{files}->{$File::Find::name};
+                # if the file is a CHECKSUMS file, then ignore it
+                return if $File::Find::name =~ /CHECKSUMS$/;
+                print "$File::Find::name ... removed\n" unless $o->{quiet};
+                unlink $_ or warn "Cannot remove $File::Find::name: $!";
+             }, $o->{dest_dir};
+}
+
+# FUNCTION mirror_module
+#
+# Takes in a relative path, an options HASHREF, and
+# (optionally) a switch for ignoring pre-existing files.
+# Mirrors the file from the cpan repository to the local
+# store. Records files that were already processed during
+# this run and doesn't bother to try and mirror them
+# multiple times. Only issues a warning on failure to mirror
+# a particular file. Pulls in the CHECKSUMS file for the dir
+# if it doesn't already exist.
+#
+sub mirror_module
+{
+    my $path            = shift;
+    my $o               = shift;
+    my $skip_if_present = shift;
+
+    my $remote_uri = URI->new_abs($path,$o->{cpan_url})->as_string;
+    my $local_file = catfile($o->{dest_dir},split '/',$path);
+
+    # If $path isn't a CHECKSUMS path, then create one
+    my $checksum_path = URI->new_abs("CHECKSUMS",$remote_uri)->rel($o->{cpan_url})
+        unless $path =~ /CHECKSUMS$/;
+
+    # If the option is turned on and the file already exists
+    # mark it as seen so it is skipped.
+    if($skip_if_present and -f $local_file)
+    {
+        $o->{files}->{$local_file} = 1;
+        # Since the file already exists, we want to check to
+        # see if the CHECKSUMS file already exists. If not,
+        # then we need to mirror it. (Only if the $path
+        # isn't already a CHECKSUMS path though... we don't
+        # take kindly to no infinite loops 'round here)
+        mirror_module($checksum_path,$o,1) if $checksum_path;
+    }
+
+    # skip this entry if we've already processed it
+    return if $o->{files}->{$local_file};
+
+    # mark this file as processed
+    $o->{files}->{$local_file} = 1;
+
+    # create the path to the file
+    mkpath(dirname($local_file), !$o->{quiet},0711);
+
+    # start mirroring the file
+    print $path unless $o->{quiet};
+    my $status = mirror($remote_uri,$local_file);
+
+    # process the aftermath of mirror()
+    if($status == RC_OK)
+    {
+        print " ... updated\n" unless $o->{quiet};
+    }
+    elsif($status != RC_NOT_MODIFIED)
+    {
+        warn "\n -> $remote_uri: $status\n";
+    }
+    else
+    {
+        print " ... up to date\n" unless $o->{quiet};
+    }
+
+    # If this isn't already a CHECKSUMS file, then we need
+    # to mirror the appropriate CHECKSUMS file.
+    mirror_module($checksum_path,$o) if $checksum_path;
+    return;
+}
+
+# FUNCTION mirror_indexfiles
+#
+# Mirrors the cpan metadata files:
+#   authors/01mailrc.txt.gz
+#   modules/02packages.details.txt.gz
+#   modules/03modlist.data.gz
+#
+# Takes in an 'options' HASHREF.
+#
+sub mirror_indexfiles
+{
+    my $o = shift;
+    my @index_files = qw| authors/01mailrc.txt.gz
+                          modules/02packages.details.txt.gz
+                          modules/03modlist.data.gz |;
+    foreach (@index_files)
+    {
+        my $remote_uri = URI->new_abs($_,$o->{cpan_url})->as_string;
+        my $local_path = catfile($o->{dest_dir},split '/',$_);
+
+        # create path if it doesn't exist
+        mkpath(dirname($local_path),!$o->{quiet},0711);
+
+        # grab the file, if there is a newer version
+        print $local_path unless $o->{quiet};
+        my $status = mirror($remote_uri,$local_path);
+
+        if($status == RC_OK)
+        {
+            print " ... updated\n" unless $o->{quiet};
+        }
+        elsif ($status == RC_NOT_MODIFIED)
+        {
+            print " ... up to date\n" unless $o->{quiet};
+        }
+        else
+        {
+            die "\n$remote_uri: $status\n";
+        }
+
+        $o->{files}->{$local_path} = 1;
+    }
+    return;
+}
+
+# FUNCTION read_config
+#
+# Reads in the configuration file ~/.cpansync and sticks the
+# key/value pairs into the options hash. Takes in a HASHREF
+# to the options hash.
+#
+sub read_config
+{
+    my $opts = shift;
+    my $location = "$ENV{HOME}/.cpansync";
+    open FILE, $location;
+    while(<FILE>)
+    {
+        next unless $_;
+        chop;
+        # skip blanklines or lines with no '=' on them.
+        next if $_ eq '' or m/^[^=]*$/;
+        # use index()+substr() instead of split() to preserve any values in the
+        # RHS that might contain '=' in them
+        my $loc = index $_,'=';
+        my $key = substr($_,0,$loc);
+        my $val = substr($_,$loc+1);
+        $key =~ s/^\s*(.*?)\s*$/$1/;
+        $val =~ s/^\s*(.*)$/$1/;
+        $opts->{$key} = $val;
+    }
+    return;
+}
+
+# FUNCTION usage
+#
+# Prints out the usage information, and exits
+#
+sub usage
+{
+    print <<EOM;
+Usage: cpansync [opts]
+
+ -u --url=URL    Define the cpan url to fetch from
+ -d --dest=DIR   Define a destination directory for the mirror
+ -q --quiet      Turn off verbose messages
+    --getdistros Mirror perl5 distros on cpan as well
+ -p --prune      Remove all unlisted files. (Only the latest versions of
+                 modules are 'listed')
+EOM
+    exit 1
+}
+
+# FUNCTION check_settings
+#
+# Perform any needed sanity checks on the settings.
+#
+sub check_settings
+{
+    my $opts   = shift;
+    usage unless defined($opts->{cpan_url}) and defined($opts->{dest_dir});
+}
+
+main();

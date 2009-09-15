@@ -84,3 +84,7 @@ incl-local-fonts - Include Local Fonts
     X11 login/startup, though will work at anytime during an X11 session. It's
     not a permenant fix, it only makes the changes last until the end of the
     current session (which is why it's best just to add it as a startup item).
+
+cpansync - CPAN Sync Script
+
+    Inspired by : http://www.stonehenge.com/merlyn/LinuxMag/col42.html
