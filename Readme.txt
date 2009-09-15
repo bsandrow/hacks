@@ -88,3 +88,7 @@ incl-local-fonts - Include Local Fonts
 cpansync - CPAN Sync Script
 
     Inspired by : http://www.stonehenge.com/merlyn/LinuxMag/col42.html
+
+stt - Set Term Title
+    Concatenates all CLI options into a single string and sets the X terminal
+    emulater title to that string.

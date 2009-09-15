@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# stt - Set Term Title
+#   Concatenates all CLI options into a single string and sets the X terminal
+#   emulater title to that string.
+
+echo -n -e "\033]0;$*\007"
