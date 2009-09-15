@@ -219,7 +219,7 @@ END_OF_USAGE
         my ($image_url,$command,$dest_dir,$verbose) = @_;
         
         my $filename = $image_url;
-           $filename =~ s{/([^/]*)$}{$1};
+           $filename =~ s{^.*/([^/]*)$}{$1};
 
         my $tmp_path  = "$dest_dir/$filename.part";
         my $file_path = "$dest_dir/$filename";
