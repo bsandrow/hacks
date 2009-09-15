@@ -62,10 +62,10 @@ END_OF_USAGE
 
         # Setup the mode to run in
         if(exists $options{m}) {
-            $prefs{mode}    = 'proc';
+            $prefs{mode}    = 'out';
             $prefs{verbose} = 0;
         } else {
-            $prefs{mode}    = 'out';
+            $prefs{mode}    = 'proc';
             $prefs{verbose} = 1;
         }
 
