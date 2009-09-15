@@ -23,6 +23,11 @@ futaba-thread-get - Futaba Image Board Thread Image Getter
     out the image urls or downloads them (depending on the CLI options
     provided).
 
+    *note* Currently doesn't support .gif files on 4chan (possibly other sites
+    too). I need to rework the regex (right now it's extracting the url from
+    the thumbnail url, but the thumbnails for .gif files on 4chan are .jpgs...
+    which screws things up)
+
 tz - Timezone Displayer
 
     Displays the timezone in a number of timezones.
