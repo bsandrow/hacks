@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# gvr - gVim Remote
+#   Launches gvim with the --remote option. If the name of the calling script
+#   is 'gvrw' then also adds 'wait option.
+
+hostname=`hostname`
+script_name=`basename $0`
+
+# if the option '-w' is used or the name of the script is 'gvrw' then also
+# wait.
+if [ "$1" = "-w" -o "$call_name" = "gvrw" ]; then
+    remote_opt="--remote-wait-silent"
+    shift
+else
+    remote_opt="--remote-silent"
+fi
+
+exec gvim --servername "$hostname" $remote_opt $@

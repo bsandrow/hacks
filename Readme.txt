@@ -72,3 +72,8 @@ cron-wrapper - Cron Wrapper
     and ending of logging, as well as making sure that error output ends up in
     the log *and* in the cron email.
 
+gvr - gVim Remote
+
+    A quick way to launch a start or connect to a common gvim session (named
+    using the current hostname; which allows gvim to not be confused be local
+    commands trying to connect to remotely run sessions).
