@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# xirssi - X11 Irssi
+#   Irssi in a screen session (that is auto-resumed if it already exists) that
+#   is launch in an X11 terminal emulator
+
+[ -z $XIRSSI_TERM ] && XIRSSI_TERM=xterm
+IRSSI_SCREEN_SESSION=`screen -list | egrep '[[:digit:]]+\.irssi' | cut -d"	" -f2`
+[ -z $IRSSI_SCREEN_SESSION ] && exec $XIRSSI_TERM -title xirssi -name xirssi -e screen -S irssi -t irssi irssi
+exec $XIRSSI_TERM -title xirssi -name xirssi -e screen -x $IRSSI_SCREEN_SESSION

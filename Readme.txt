@@ -38,3 +38,7 @@ xmutt - X11 Mutt (in a Terminal)
       $XMUTT_TERM variable so long as the terminal supports the -title/-name/-e
       options.
 
+xirssi - X11 Irssi
+
+    Irssi in a screen session (that is auto-resumed if it already exists) that
+    is launch in an X11 terminal emulator
