@@ -110,8 +110,8 @@ END_OF_USAGE
         my $break_loop = 0;
         my $prefs      = shift;
 
-        while(not $break_loop) {
-            last if scalar @{$prefs->{url_list}};   # no more urls to process
+        while(!$break_loop) {
+            last unless scalar @{$prefs->{url_list}};   # no more urls to process
 
             my $i = 0;
             my @dead_threads;
@@ -157,8 +157,8 @@ END_OF_USAGE
         my $image_url_list = get_image_url_list($thread_url);
         return undef unless $image_url_list;
 
-        return print_url_list($image_url_list)              if $pref->{mode} eq 'out';
-        return download_url_list($prefs,$image_url_list)    if $pref->{mode} eq 'proc';
+        return print_url_list($image_url_list)              if $prefs->{mode} eq 'out';
+        return download_url_list($prefs,$image_url_list)    if $prefs->{mode} eq 'proc';
         return undef;
     }
 
@@ -218,13 +218,13 @@ END_OF_USAGE
     {
         my ($image_url,$command,$dest_dir,$verbose) = @_;
         
-        $filename = $image_url;
-        $filename =~ s{/([^/]*)$}{$1};
+        my $filename = $image_url;
+           $filename =~ s{/([^/]*)$}{$1};
 
         my $tmp_path  = "$dest_dir/$filename.part";
         my $file_path = "$dest_dir/$filename";
 
-        return 1            if -f $filepath;
+        return 1            if -f $file_path;
         unlink($tmp_path)   if -f $tmp_path;
 
         $command =~ s!URL!\'$image_url\'!;
