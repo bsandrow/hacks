@@ -26,3 +26,15 @@ futaba-thread-get - Futaba Image Board Thread Image Getter
 tz - Timezone Displayer
 
     Displays the timezone in a number of timezones.
+
+xmutt - X11 Mutt (in a Terminal)
+
+    Command to make it easy to start up a terminal with mutt in it.
+    * Supports rxvt/urxvt/xterm out of the box (CLI options are compatible with
+      all three).
+    * Using the -name option allows themeing specific to xmutt instances in the
+      ~/.Xdefaults file.
+    * Defaults to using xterm as the terminal, but this can be changed with the
+      $XMUTT_TERM variable so long as the terminal supports the -title/-name/-e
+      options.
+
