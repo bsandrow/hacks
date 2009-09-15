@@ -182,8 +182,7 @@ END_OF_USAGE
         for (@$image_url_list) {
             print "\t$_..." if $prefs->{verbose};
             my $result = download_image_url($_,$prefs->{dl_command},$prefs->{dest_dir},$prefs->{verbose});
-            print "Failed\n"    if $prefs->{verbose} and !$result;
-            print "Success\n"   if $prefs->{verbose} and $result;
+            print "$result\n" if $prefs->{verbose};
         }
         
         return 1;
@@ -226,17 +225,17 @@ END_OF_USAGE
         my $tmp_path  = "$dest_dir/$filename.part";
         my $file_path = "$dest_dir/$filename";
 
-        return 1            if -f $file_path;
-        unlink($tmp_path)   if -f $tmp_path;
+        return "Already Exists" if -f $file_path;
+        unlink($tmp_path)       if -f $tmp_path;
 
         $command =~ s!URL!\'$image_url\'!;
         $command =~ s!FILE!\"$tmp_path\"!;
 
         system($command);
-        return undef if $?;
+        return "Failure" if $?;
 
         rename $tmp_path, $file_path;
-        return 1;
+        return "Success";
     }
 }
 
