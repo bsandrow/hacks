@@ -1,0 +1,160 @@
+#!/usr/bin/perl -w
+
+# mutt-photo-mail - Mutt Photo Mailer
+#   Takes some email options and a list of photo files. Resizes photos
+#   that are larger than a set size and launches mutt with (in mail
+#   compose mode) with the photos attached (read to write a message and
+#   send).
+
+# External Dependencies:
+#   * convert (part of GraphicsMagick)
+#   * basename
+
+use strict;
+use warnings;
+
+use Getopt::Std;
+
+use vars qw/
+    $max_dimension
+    %prefs
+    @photos
+    @attach_photos
+/;
+
+sub main
+{
+    init();
+    process_photos();
+    compose_email();
+}
+
+# init()
+#
+# Populate the %prefs hash according to the command-line options. And populate
+# the @photos array with filenames for photos to include.
+#
+sub init
+{
+    my %opts;
+    getopts('s:t:c:b:h?',\%opts);
+    usage() if exists $opts{'?'} or exists $opts{h};
+    usage("Error: Need a recipient") unless exists $opts{t};
+    usage("Error: Need a subject")   unless exists $opts{s};
+    $prefs{subject} = $opts{s};
+    $prefs{to}      = $opts{t};
+    $prefs{cc}      = $opts{c} if exists $opts{c};
+    $prefs{bcc}     = $opts{b} if exists $opts{b};
+    $max_dimension  = 1600;
+    push @photos, @ARGV;
+}
+
+# usage()
+#
+# Prints out the usage information and exits. If a string is passed in, that
+# string is output before the boilerplate usage information.
+#
+sub usage
+{
+    map { + print STDERR "$_\n"; } @_;
+    print STDERR <<EOF;
+Usage
+    mutt-photo-mail [options] -s subject -t recipient photo1 photo2 [...]
+
+Options
+   -s   The subject of the email.
+   -t   The recipient of the email.
+   -c   Comma separated list of email addresses to CC this email to.
+   -b   Comma separated list of email addresses to BCC this email to.
+EOF
+    exit 1;
+}
+
+
+# process_photos()
+#
+# Runs through the list of photos, resizing them if necessary. The max
+# dimension defaults to 1600 with aspect ratio respected (i.e. most photos will
+# be 1600x1200 or 1200x1600 if they have to be resized).
+#
+sub process_photos
+{
+    for my $photo (@photos) {
+
+        # get the photo dimensions
+        my $dimensions = `identify $photo | sed 's:^.*[[:space:]]\\+\\([[:digit:]]\\+x[[:digit:]]\\+\\).*\$:\\1:' | tr -d "\n"`;
+        if($?) {
+            print STDOUT "'$photo' is not recognized as an image. Skipping. Hit enter to continue...\n";
+            my $nothing = <STDIN>;
+            next;
+        }
+        my ($width,$height) = split /x/, $dimensions;
+
+        # get the temp file
+        my $tmpfile = get_tempfile($photo);
+
+        # downsize the photo if necessary, otherwise use it as-is
+        my $command = undef;
+           $command = "convert -resize ${max_dimension}x $photo $tmpfile" if int($width) > int($max_dimension) and int($width) > int($height);
+           $command = "convert -resize x${max_dimension} $photo $tmpfile" if int($height) > int($max_dimension) and int($height) > int($width);
+        if(defined $command) {
+            print STDOUT "Resizing photo '$photo'...";
+            system($command);
+            if($?) {
+                print "Failed!\n";
+                print STDERR "Error resizing photo '$photo'. Skipping. Hit enter to continue...";
+                my $nothing = <STDIN>;
+                next;
+            }
+            print STDOUT "Done\n";
+            push @attach_photos, $tmpfile;
+            next;
+        }
+        push @attach_photos, $photo;
+    }
+}
+
+# get_tempfile()
+#
+# Takes in an photo's filename and outputs a randomly generated temp file name.
+#   filename.jpg -> /tmp/filename.XXXXXXXX.jpg
+#   (where XXXXXXXX is a random number)
+#
+sub get_tempfile
+{
+    my $temp_base = `basename $_[0]`;
+    chomp $temp_base;
+    $temp_base =~ s/^(.*)\.([[:alpha:]]+)$/$1.XXXXXXXX.$2/;
+    while(1) {
+        my $rand_num      = int(rand(100000000));
+        my $test_filename = $temp_base;
+        $test_filename    =~ s/X{8}/$rand_num/;
+        $test_filename = "/tmp/$test_filename";
+        next if -f $test_filename;
+        return $test_filename;
+    }
+    return undef;
+}
+
+
+# compose_email()
+#
+# Formats a mutt command using provided information, and then exec's mutt with
+# the options.
+#
+sub compose_email
+{
+    my $command_base = 'mutt';
+    my @command_opts;
+    push @command_opts, ("-s",$prefs{subject});
+    map { + push @command_opts, ('-c',$_); } split(/\s*,\s*/, $prefs{cc})  if exists $prefs{cc};
+    map { + push @command_opts, ('-b',$_); } split(/\s*,\s*/, $prefs{bcc}) if exists $prefs{bcc};
+    map { + push @command_opts, ('-a',$_); } @attach_photos;
+    push @command_opts, '--';
+    push @command_opts, $prefs{to};
+    exec $command_base, @command_opts;
+}
+
+main();
+
+#vim:ft=perl:

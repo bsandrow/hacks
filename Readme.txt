@@ -96,3 +96,10 @@ stt - Set Term Title
 get-uuid-mount - Get Mount Point by UUID
 
     Returns the mount point for a filesystem by it's UUID.
+
+mutt-photo-mail - Mutt Photo Mailer
+
+    Takes some email options and a list of photo files. Resizes photos
+    that are larger than a set size and launches mutt with (in mail
+    compose mode) with the photos attached (read to write a message and
+    send).
