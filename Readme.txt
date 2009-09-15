@@ -77,3 +77,10 @@ gvr - gVim Remote
     A quick way to launch a start or connect to a common gvim session (named
     using the current hostname; which allows gvim to not be confused be local
     commands trying to connect to remotely run sessions).
+
+incl-local-fonts - Include Local Fonts
+
+    Include local fonts in sub-directories of '~/.fonts/'. Meant to be run at
+    X11 login/startup, though will work at anytime during an X11 session. It's
+    not a permenant fix, it only makes the changes last until the end of the
+    current session (which is why it's best just to add it as a startup item).

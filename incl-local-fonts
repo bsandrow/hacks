@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# incl-local-fonts - Include Local Fonts
+#   Allows you to include font subdirectories under ~/.fonts/ (instead of
+#   needing to keep all fonts in the same directory.
+
+for DIR In $HOME/.fonts/*; do
+    [ -f $DIR/fonts.dir ] && xset fp+ $DIR
+done
