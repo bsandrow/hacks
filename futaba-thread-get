@@ -180,8 +180,10 @@ END_OF_USAGE
         }
 
         for (@$image_url_list) {
-            print "\t$_" if $prefs->{verbose};
-            download_image_url($_,$prefs->{dl_command},$prefs->{dest_dir},$prefs->{verbose});
+            print "\t$_..." if $prefs->{verbose};
+            my $result = download_image_url($_,$prefs->{dl_command},$prefs->{dest_dir},$prefs->{verbose});
+            print "Failed\n"    if $prefs->{verbose} and !$result;
+            print "Success\n"   if $prefs->{verbose} and $result;
         }
         
         return 1;
