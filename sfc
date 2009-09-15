@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# sfc - Stale File Cleanup
+#   Inspired by a LifeHacker.com post. Cleans up stale files (files that been
+#   untouched for a specified number of days).
+#   LifeHacker post:
+#   http://lifehacker.com/software/geek-to-live/geek-to-live-hard-drive-janitor-133190.php
+
+
+# -- options --
+[ -z "$1" ] && { echo "Need to provide a directory to clean"; exit 1; }
+PATH_TO_CLEAN=$1
+
+[ -z "$2" ] && AGE_LIMIT=14
+[ -n "$2" ] && AGE_LIMIT=$2
+
+# Note:
+#  1. The regex is there to make sure that $PATH_TO_CLEAN/. isn't also deleted
+#  2. ctime and atime are unreliable depending on the filesystem. mtime is the
+#     most portable measure for the age of the file.
+
+find -P "$PATH_TO_CLEAN" -regex "^$PATH_TO_CLEAN/.+" -mtime +$AGE_LIMIT -print -delete;

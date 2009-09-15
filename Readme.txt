@@ -58,3 +58,10 @@ nautilus-desktop-toggle - Nautilus 'Draw Desktop' Option Controller
     This allows the user to easily run the alternative environment side-by-side
     with GNOME without having to open up gconf-editor everytime environments
     are swapped.
+
+sfc - Stale File Cleanup
+
+    Inspired by a LifeHacker.com post. Cleans up stale files (files that been
+    untouched for a specified number of days).
+    LifeHacker post:
+    http://lifehacker.com/software/geek-to-live/geek-to-live-hard-drive-janitor-133190.php
