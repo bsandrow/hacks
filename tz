@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# tz - Timezone Displayer
+#   Displays the current time in a number of timezones
+
+ZONES="Asia/Dubai Asia/Tokyo America/Toronto America/Los_Angeles Europe/London"
+
+for ZONE in $ZONES
+do
+    if [ "America/Los_Angeles" == "$ZONE" ]; then
+        (echo -ne "$ZONE\t"; TZ=$ZONE date "+%a %b %d %Y %H:%M")
+    else
+        (echo -ne "$ZONE\t\t"; TZ=$ZONE date "+%a %b %d %Y %H:%M")
+    fi
+done

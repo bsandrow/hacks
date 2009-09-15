@@ -12,7 +12,8 @@ SCRIPTS = perl-incpp \
 		perl-pathsearch \
 		pathsearch \
 		futaba-thread-get \
-		pb-leecher
+		pb-leecher \
+		tz
 
 .PHONY  = $(SCRIPTS) all
 TARGETS = $(foreach script,$(SCRIPTS),$(BINDIR)/$(script))

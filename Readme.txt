@@ -22,3 +22,7 @@ futaba-thread-get - Futaba Image Board Thread Image Getter
     threads and parses out all of the posted images in the threads. Spits
     out the image urls or downloads them (depending on the CLI options
     provided).
+
+tz - Timezone Displayer
+
+    Displays the timezone in a number of timezones.
