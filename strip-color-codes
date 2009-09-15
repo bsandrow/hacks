@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# strip-color-codes - Color Code Stripper
+#   Meant to be used in a string of shell pipes. Strips ANSI color codes from
+#   STDIN and prints the result to STDOUT.
+
+sed -e 's,\(\\033\|\\e\)\[[01]m,,g' -e 's,\(\\033\|\\e\)\[[0-9][0-9];[01]m,,g' -e 's,\(\\033\|\\e\)\[[0-9][0-9]m,,g'

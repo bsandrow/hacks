@@ -42,3 +42,8 @@ xirssi - X11 Irssi
 
     Irssi in a screen session (that is auto-resumed if it already exists) that
     is launch in an X11 terminal emulator
+
+strip-color-codes - Color Code Stripper
+
+    Meant to be used in a string of shell pipes. Strips ANSI color codes from
+    STDIN and prints the result to STDOUT.
