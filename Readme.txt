@@ -65,3 +65,10 @@ sfc - Stale File Cleanup
     untouched for a specified number of days).
     LifeHacker post:
     http://lifehacker.com/software/geek-to-live/geek-to-live-hard-drive-janitor-133190.php
+
+cron-wrapper - Cron Wrapper
+
+    A wrapper script around cron-run processes that timestamps the beginning
+    and ending of logging, as well as making sure that error output ends up in
+    the log *and* in the cron email.
+

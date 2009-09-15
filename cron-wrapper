@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# cron-wrapper - Cron Wrapper
+#   A wrapper script around cron-run processes that timestamps the beginning
+#   and ending of logging, as well as making sure that error output ends up in
+#   the log *and* in the cron email.
+
+# initialization
+if [ "$1" = "-l" ]; then
+    logfile=$2
+    shift;
+    shift;
+else
+    [ -z "$CRON_WRAPPER_LOGFILE" ] && exit 1
+    logfile=$CRON_WRAPPER_LOGFILE
+fi
+retval=0
+format='+%Y%m%d %H:%M:%S'
+
+# timestamp the start of logging
+echo "cron-wrapper[$$]: $1 started at `date \"$format\"`" >>$logfile
+
+# run the program; prepend program name and cron-wrapper pid
+$@ 2>&1 | sed "s/^/$1[$$]: /" >>$logfile
+
+# capture the return value and deal with an error if one happened
+retval=$?
+if [ $retval -ne 0 ]; then
+    errmsg="cron-wrapper: $1 failed at `date \"$format\"` with return value $retval"
+    echo $errmsg >>$logfile
+    echo $errmsg >&2 # we want an error on STDERR to spawn a cron email
+    retval=1
+fi
+
+# timestamp the end of logging
+echo "cron-wrapper[$$]: $1 finished at `date \"$format\"`" >>$logfile
+exit $retval
