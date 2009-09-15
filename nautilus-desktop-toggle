@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# nautilus-desktop-toggle - Nautilus 'Draw Desktop' Option Controller
+#   Interfaces with Nautilus through GConf to turn the 'Draw Desktop' option on
+#   or off. Meant mostly for usage in ~/.xinitrc scripts for non-Gnome window
+#   managers/environments where a user might want to use Nautilus without the
+#   default setting of 'show_desktop = true'.
+#
+#   This allows the user to easily run the alternative environment side-by-side
+#   with GNOME without having to open up gconf-editor everytime environments
+#   are swapped.
+
+
+current_value=`gconftool-2 --get /apps/nautilus/preferences/show_desktop | tr -d "\n"`
+switch="$1"
+
+[ "$switch" == 'on' -o "$switch" == 'ON' ] && export new_value='true'
+[ "$switch" == 'off' -o "$switch" == 'OFF' ] && export new_value='false'
+
+[ -z "$new_value" -a "$current_value" == 'false' ] && export new_value='true'
+[ -z "$new_value" -a "$current_value" == 'true'  ] && export new_value='false'
+
+exec gconftool-2 --type boolean --set /apps/nautilus/preferences/show_desktop $new_value

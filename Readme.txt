@@ -47,3 +47,14 @@ strip-color-codes - Color Code Stripper
 
     Meant to be used in a string of shell pipes. Strips ANSI color codes from
     STDIN and prints the result to STDOUT.
+
+nautilus-desktop-toggle - Nautilus 'Draw Desktop' Option Controller
+
+    Interfaces with Nautilus through GConf to turn the 'Draw Desktop' option on
+    or off. Meant mostly for usage in ~/.xinitrc scripts for non-Gnome window
+    managers/environments where a user might want to use Nautilus without the
+    default setting of 'show_desktop = true'.
+ 
+    This allows the user to easily run the alternative environment side-by-side
+    with GNOME without having to open up gconf-editor everytime environments
+    are swapped.
