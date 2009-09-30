@@ -193,12 +193,75 @@ END_OF_USAGE
         return 1;
     }
 
+    sub process_7chan_content
+    {
+        my $page_content = shift;
+        my @images  = ();
+
+        # Match things that look like this:
+        #   <td class="reply" id="reply4169"> ... </td>
+        # Each of these is one post in a thread.
+        my @replies = ($page_content =~ m!(<td\ class="reply"\ id="reply[[:digit:]]*">.*?</td>)!smigx);
+
+        for my $reply (@replies) {
+            # process 'multithumb' replies
+            if($reply =~ m/<span class="multithumb"/) {
+                my @imgs = 
+                    $reply =~ m!<a\s+
+                                target="_blank"\s+
+                                href="([^"]+)">.*?  # grab direct link to the image
+                                <img.*?
+                                title="[^"]+        # start into the title of the image
+                                \([^)]+,[^)]+,\     # ignore the first two CSVs between the parens
+                                ([^)"]+)            # capture everything after the 2nd comma before the closing paren
+                                \)"!msgix;
+                # there should be an even number of results
+                die "Error 25" if (scalar @imgs) % 2 != 0;
+                for (my $i=0; $i<scalar @imgs; ++$i) {
+                    push @images, $imgs[$i];
+                    $i++; # skip the filename for now
+                }
+            }
+            # process replies with images; the matches look like this:
+            #     <a href="https://www.7chan.org/gif/src/125410203227.jpg" onclick="javascript:expandimg('4167', 'https://www.7chan.org/gif/src/125410203227.jpg', 'https://www.7chan.org/gif/thumb/125410203227s.jpg', '982', '1420', '86', '125');return false;">
+            #     125410203227.jpg</a>
+            #
+            #     - (245.19KB
+            #
+            #     , 982x1420
+            #
+            #     , filename goes here.gif
+            #
+            #     )
+            #
+            #     </span>
+            elsif($reply =~ m/<span\s+id="thumb\d+"/) {
+                my @pair =
+                    $reply =~ m!<a\s+
+                                href="([^"]+)"\s+   # grab the direct link to the image
+                                onclick="javascript:expandimg.*?</a> # javascript as confirmation of right link
+                                .*?
+                                \(.*?,.*?,\ 
+                                ([^\)]+[^\s])\s+    # grab the filename; make sure last character is not whitespace
+                                \)!msgix;
+                print "image url = $pair[0]\n";
+                print "filename = $pair[1]\n";
+            }
+        }
+    }
+
     sub get_image_url_list
     {
         my $thread_url    = shift;
         my $http_response = $FUTABA_UA->get($thread_url);
         return undef unless $http_response->is_success;
+        my $page_content  = $http_response->content;
 
+        if($thread_url =~ m{(\.|/)7chan\.org}) {
+            return process_7chan_content($page_content);
+        } else {
+            die ( "Should not be here" );
+        }
         # Extract image urls from content
         my @matches =
             $http_response->content =~ m!<img\s*.*?\s*src="?([^\s>"]*/thumb/[0-9]*s\.[a-zA-Z]{3})"?!migx;
