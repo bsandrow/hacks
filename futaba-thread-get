@@ -3,7 +3,6 @@
 
 # TODO: add an option to parse the original filename
 # TODO: figure out how to reconcile the original filename duplicates
-# TODO: fix extraction to catch .gif files
 
 use strict;
 use warnings;
