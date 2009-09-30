@@ -257,20 +257,21 @@ END_OF_USAGE
         return undef unless $http_response->is_success;
         my $page_content  = $http_response->content;
 
-        if($thread_url =~ m{(\.|/)7chan\.org}) {
-            return process_7chan_content($page_content);
-        } else {
-            die ( "Should not be here" );
-        }
         # Extract image urls from content
         my @matches =
-            $http_response->content =~ m!<img\s*.*?\s*src="?([^\s>"]*/thumb/[0-9]*s\.[a-zA-Z]{3})"?!migx;
-        s!thumb/([0-9]*)s\.([a-z]{3})!src/$1.$2!i for (@matches);
+            $page_content =~ m!href="?(
+                                 https?://[^>"]+?/src/[0-9]+\.[a-zA-Z]{3}| # for most sites that use absolute links
+                                 /[^>"]+/src/[0-9]+\.[a-zA-Z]{3}     # for sites like 420chan with relative links
+                                )\"?!migx;
 
         # Construct a base url (some sites use relative urls, and we need to
         # construct absolute urls
         $thread_url =~ m{^([a-z]*://[^\s/]*).*$}i;
         my $urlbase = $1;
+
+        # Remove duplicates
+        my %temp = ();
+        @matches = grep ++$temp{$_} < 2, @matches;
 
         # Build the final list (make sure each url is an absolute url before
         # returning a list).
