@@ -108,3 +108,7 @@ mutt-photo-mail - Mutt Photo Mailer
     that are larger than a set size and launches mutt with (in mail
     compose mode) with the photos attached (read to write a message and
     send).
+
+shredr - GNU shred recursive
+
+    A recursive shell wrapper around shred.
