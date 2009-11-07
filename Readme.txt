@@ -112,3 +112,12 @@ mutt-photo-mail - Mutt Photo Mailer
 shredr - GNU shred recursive
 
     A recursive shell wrapper around shred.
+
+repo-update - Repository Update
+
+    Takes in a repository directory, and updates it.
+
+repo-updater - Repository Updater
+
+    Takes in a manifest file, listing repositories to update. Launches
+    repo-update on all repositories.
