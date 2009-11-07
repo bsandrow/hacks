@@ -1,0 +1,17 @@
+#!/bin/bash
+
+MANIFEST="$1"
+MANIFEST_TMP=`mktemp`
+MANIFEST_DIR=`dirname "$MANIFEST"`
+
+# Make sure that everything is absolute. Anything that is relative is prepended
+# with the directory of the MANIFEST file.
+egrep '^/' "$MANIFEST" >> "$MANIFEST_TMP"
+egrep -v '^/' "$MANIFEST" | sed 's:^:'$MANIFEST_DIR'\/:' >> "$MANIFEST_TMP"
+
+cat "$MANIFEST_TMP" | while read REPO
+do
+    repo-update "$REPO"
+done
+
+rm "$MANIFEST_TMP"
