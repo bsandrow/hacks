@@ -2,19 +2,40 @@
 
 REPO=$1
 
-# Determine Repo Type
-#
+# ---- Determine Repo Type ----
 [ -d "$REPO/.git" ] && UPDATE_CMD=git_update
-[ -d "$REPO/.svn" ] && UPDATE_CMD='svn update'
-[ -d "$REPO/.hg"  ] && UPDATE_CMD='hg pull'
+[ -d "$REPO/.svn" ] && UPDATE_CMD=svn_update
+[ -d "$REPO/.hg"  ] && UPDATE_CMD=hg_update
+[ -d "$REPO/.bzr" ] && UPDATE_CMD=bzr_update
 
 ( cd "$REPO" && $UPDATE_CMD )
 
 
 git_update()
 {
+    # use git-fetch to pull in all the remote commits
     git remote | while read REMOTE
     do
         git fetch "$REMOTE"
     done
+    git pull
+    # NOTE: This assumes that you're not currently working on anything in the
+    # repo.
+}
+
+svn_update()
+{
+    svn update
+}
+
+bzr_update()
+{
+    echo "bzr not currently supported" >&2
+    exit 1
+}
+
+hg_update()
+{
+    echo "hg not currently supported" >&2
+    exit 1
 }
