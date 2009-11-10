@@ -239,7 +239,7 @@ sub read_config
         next unless $_;
         chop;
         # skip blanklines or lines with no '=' on them.
-        next if $_ eq '' or m/^[^=]*$/;
+        next if $_ eq '' or m/^[^=]*$/ or /^\s*#/;
         # use index()+substr() instead of split() to preserve any values in the
         # RHS that might contain '=' in them
         my $loc = index $_,'=';
