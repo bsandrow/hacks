@@ -229,7 +229,10 @@ sub mirror_indexfiles
 sub read_config
 {
     my $opts = shift;
-    my $location = "$ENV{HOME}/.cpansync";
+    my $location = -f "$ENV{HOME}/.cpansync"    ? "$ENV{HOME}/.cpansync"    :
+                   -f "/usr/local/etc/cpansync" ? "/usr/local/etc/cpansync" :
+                   -f "/etc/cpansync"           ? "/etc/cpansync"           : undef;
+    die "Cannot find config file" unless $location;
     open FILE, $location;
     while(<FILE>)
     {
