@@ -1,0 +1,59 @@
+#!/bin/bash
+# vim:fdm=marker
+
+# VARIABLES {{{
+
+dir="$1"
+sources_file="$dir/.linksources"
+
+# }}}
+
+# FUNCTIONS {{{
+
+# exit_with_msg {{{
+function exit_with_msg
+{
+    echo "$*"
+    exit 1
+}
+# }}}
+
+# sanity_checks {{{
+function sanity_checks
+{
+    test -d "$1" || exit_with_msg "'$1' is not a directory or doesn't exist!"
+    test -f "$2" || exit_with_msg "'$2' does not exist! Nothing to do!"
+    test -r "$2" || exit_with_msg "'$2' not readable!"
+}
+# }}}
+
+# }}}
+
+# MAIN {{{
+
+# perform some sanity checks on the user input
+sanity_checks "$dir" "$sources_file"
+
+# we'll be doing all of our work inside of the directory so might as well make
+# it our working directory.
+cd "$dir" || exit_with_msg "Could not chdir($dir)"
+
+# clean out the directory of any previous links
+ls | while read item
+do
+    test -L "$item" && rm "$item"
+done
+
+# process each directory in the sources file
+cat "$sources_file" | while read source_dir
+do
+    ls "$source_dir" | while read srcdir_item
+    do
+        fullpath="$source_dir/$srcdir_item"
+        test ! -d "$fullpath" && continue
+        test -L "$srcdir_item" && echo -e "Error linking '$fullpath':\n\t'$srcdir_item' -> '`readlink "$srcdir_item"`' exists." && continue
+        ln -s "$fullpath" "$srcdir_item" || echo "Could not link '$fullpath' -> '$srcdir_item'" >&2
+    done
+done
+
+# }}}
