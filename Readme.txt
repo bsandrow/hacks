@@ -1,123 +1,169 @@
-pathsearch - $PATH Search
+## genlinks
 
-    Searches through $PATH for a supplied pattern.
+Takes a directory as the first argument. Removes all (non '.' prefixed)
+symlinks in that directory. Reads a list of directories from the file
+`.linksources` in the supplied directory. Creates (same-named) links all of the
+immediate subdirectories of the paths in `.linksources`. If there is a name
+collision the first link created wins.
 
-pb-leecher - PhotoBucket Leecher
+---
 
-    Downloads images from a PhotoBucket page to a specified directory ($PWD
-    by default).
+## pathsearch - $PATH Search
 
-perl-pathsearch - Perl Path Search
+Searches through $PATH for a supplied pattern.
 
-    Searches through a perl's @INC paths for a supplied pattern.
+---
 
-perl-incpp - Perl @INC Pretty Print
+## pb-leecher - PhotoBucket Leecher
 
-    Dumps the contents of @INC. A slightly better looking version of:
-        perl -MData::Dumper -e 'print Dumper \@INC;'
+Downloads images from a PhotoBucket page to a specified directory ($PWD by
+default).
 
-futaba-thread-get - Futaba Image Board Thread Image Getter
+---
 
-    Takes in a list of URLs (from CLI or from a file) to Futaba image board
-    threads and parses out all of the posted images in the threads. Spits
-    out the image urls or downloads them (depending on the CLI options
-    provided).
+## perl-pathsearch - Perl Path Search
 
-    *note* Currently doesn't support .gif files on 4chan (possibly other sites
-    too). I need to rework the regex (right now it's extracting the url from
-    the thumbnail url, but the thumbnails for .gif files on 4chan are .jpgs...
-    which screws things up)
+Searches through a perl's @INC paths for a supplied pattern.
 
-tz - Timezone Displayer
+---
 
-    Displays the timezone in a number of timezones.
+## perl-incpp - Perl @INC Pretty Print
 
-xmutt - X11 Mutt (in a Terminal)
+Dumps the contents of @INC. A slightly better looking version of:
 
-    Command to make it easy to start up a terminal with mutt in it.
-    * Supports rxvt/urxvt/xterm out of the box (CLI options are compatible with
-      all three).
-    * Using the -name option allows themeing specific to xmutt instances in the
-      ~/.Xdefaults file.
-    * Defaults to using xterm as the terminal, but this can be changed with the
-      $XMUTT_TERM variable so long as the terminal supports the -title/-name/-e
-      options.
+    perl -MData::Dumper -e 'print Dumper \@INC;'
 
-xirssi - X11 Irssi
+---
 
-    Irssi in a screen session (that is auto-resumed if it already exists) that
-    is launch in an X11 terminal emulator
+## futaba-thread-get - Futaba Image Board Thread Image Getter
 
-strip-color-codes - Color Code Stripper
+Takes in a list of URLs (from CLI or from a file) to Futaba image board threads
+and parses out all of the posted images in the threads. Spits out the image
+urls or downloads them (depending on the CLI options provided).
 
-    Meant to be used in a string of shell pipes. Strips ANSI color codes from
-    STDIN and prints the result to STDOUT.
+**Note** Currently doesn't support .gif files on 4chan (possibly other sites
+too). I need to rework the regex (right now it's extracting the url from the
+thumbnail url, but the thumbnails for .gif files on 4chan are .jpgs...  which
+screws things up)
 
-nautilus-desktop-toggle - Nautilus 'Draw Desktop' Option Controller
+---
 
-    Interfaces with Nautilus through GConf to turn the 'Draw Desktop' option on
-    or off. Meant mostly for usage in ~/.xinitrc scripts for non-Gnome window
-    managers/environments where a user might want to use Nautilus without the
-    default setting of 'show_desktop = true'.
- 
-    This allows the user to easily run the alternative environment side-by-side
-    with GNOME without having to open up gconf-editor everytime environments
-    are swapped.
+## tz - Timezone Displayer
 
-sfc - Stale File Cleanup
+Displays the timezone in a number of timezones.
 
-    Inspired by a LifeHacker.com post. Cleans up stale files (files that been
-    untouched for a specified number of days).
-    LifeHacker post:
-    http://lifehacker.com/software/geek-to-live/geek-to-live-hard-drive-janitor-133190.php
+---
 
-cron-wrapper - Cron Wrapper
+## xmutt - X11 Mutt (in a Terminal)
 
-    A wrapper script around cron-run processes that timestamps the beginning
-    and ending of logging, as well as making sure that error output ends up in
-    the log *and* in the cron email.
+Command to make it easy to start up a terminal with mutt in it.
+ * Supports rxvt/urxvt/xterm out of the box (CLI options are compatible with all three).
+ * Using the -name option allows themeing specific to xmutt instances in the ~/.Xdefaults file.
+ * Defaults to using xterm as the terminal, but this can be changed with the $XMUTT_TERM variable so long as the terminal supports the -title/-name/-e options.
 
-gvr - gVim Remote
+---
 
-    A quick way to launch a start or connect to a common gvim session (named
-    using the current hostname; which allows gvim to not be confused be local
-    commands trying to connect to remotely run sessions).
+## xirssi - X11 Irssi
 
-incl-local-fonts - Include Local Fonts
+Irssi in a screen session (that is auto-resumed if it already exists) that is
+launch in an X11 terminal emulator
+
+---
+
+## strip-color-codes - Color Code Stripper
+
+Meant to be used in a string of shell pipes. Strips ANSI color codes from STDIN
+and prints the result to STDOUT.
+
+---
+
+## nautilus-desktop-toggle - Nautilus 'Draw Desktop' Option Controller
+
+Interfaces with Nautilus through GConf to turn the 'Draw Desktop' option on or
+off. Meant mostly for usage in ~/.xinitrc scripts for non-Gnome window
+managers/environments where a user might want to use Nautilus without the
+default setting of 'show_desktop = true'.
+
+This allows the user to easily run the alternative environment side-by-side
+with GNOME without having to open up gconf-editor everytime environments are
+swapped.
+
+---
+
+## sfc - Stale File Cleanup
+
+Inspired by a LifeHacker.com post. Cleans up stale files (files that been
+untouched for a specified number of days).
+LifeHacker post:
+http://lifehacker.com/software/geek-to-live/geek-to-live-hard-drive-janitor-133190.php
+
+---
+
+## cron-wrapper - Cron Wrapper
+
+A wrapper script around cron-run processes that timestamps the beginning and
+ending of logging, as well as making sure that error output ends up in the log
+*and* in the cron email.
+
+---
+
+## gvr - gVim Remote
+
+A quick way to launch a start or connect to a common gvim session (named using
+the current hostname; which allows gvim to not be confused be local commands
+trying to connect to remotely run sessions).
+
+---
+
+## incl-local-fonts - Include Local Fonts
 
     Include local fonts in sub-directories of '~/.fonts/'. Meant to be run at
     X11 login/startup, though will work at anytime during an X11 session. It's
     not a permenant fix, it only makes the changes last until the end of the
     current session (which is why it's best just to add it as a startup item).
 
-cpansync - CPAN Sync Script
+---
 
-    Inspired by : http://www.stonehenge.com/merlyn/LinuxMag/col42.html
+## cpansync - CPAN Sync Script
 
-stt - Set Term Title
-    Concatenates all CLI options into a single string and sets the X terminal
-    emulater title to that string.
+Inspired by : http://www.stonehenge.com/merlyn/LinuxMag/col42.html
 
-get-uuid-mount - Get Mount Point by UUID
+---
 
-    Returns the mount point for a filesystem by it's UUID.
+## stt - Set Term Title
 
-mutt-photo-mail - Mutt Photo Mailer
+Concatenates all CLI options into a single string and sets the X terminal
+emulater title to that string.
 
-    Takes some email options and a list of photo files. Resizes photos
-    that are larger than a set size and launches mutt with (in mail
-    compose mode) with the photos attached (read to write a message and
-    send).
+---
 
-shredr - GNU shred recursive
+## get-uuid-mount - Get Mount Point by UUID
 
-    A recursive shell wrapper around shred.
+Returns the mount point for a filesystem by it's UUID.
 
-repo-update - Repository Update
+---
 
-    Takes in a repository directory, and updates it.
+## mutt-photo-mail - Mutt Photo Mailer
 
-repo-updater - Repository Updater
+Takes some email options and a list of photo files. Resizes photos that are
+larger than a set size and launches mutt with (in mail compose mode) with the
+photos attached (read to write a message and send).
 
-    Takes in a manifest file, listing repositories to update. Launches
-    repo-update on all repositories.
+---
+
+## shredr - GNU shred recursive
+
+A recursive shell wrapper around shred.
+
+---
+
+## repo-update - Repository Update
+
+Takes in a repository directory, and updates it.
+
+---
+
+## repo-updater - Repository Updater
+
+Takes in a manifest file, listing repositories to update. Launches repo-update
+on all repositories.
