@@ -1,0 +1,102 @@
+#!/bin/bash
+
+function change_foreground
+{
+    esc_start="\033]10;"
+    esc_end="\007"
+    echo -en "$esc_start$1$esc_end"
+}
+
+function change_background
+{
+    esc_start="\033]11;"
+    esc_end="\007"
+    echo -en "$esc_start$1$esc_end"
+}
+
+function change_color
+{
+    esc_start="\033]4;"
+    esc_end="\007"
+    echo -en "${esc_start}$1;$2$esc_end"
+}
+
+function change_cursor
+{
+    esc_start="\033]12;"
+    esc_end="\007"
+    echo -en "$esc_start$1$esc_end"
+}
+
+function color_palette
+{
+    case $1 in
+        tango)
+            change_color 0 "#2E3436"
+            change_color 1 "#CC0000"
+            change_color 2 "#4E9A06"
+            change_color 3 "#C4A000"
+            change_color 4 "#3465A4"
+            change_color 5 "#75507B"
+            change_color 6 "#06989A"
+            change_color 7 "#D3D7CF"
+            change_color 8 "#555753"
+            change_color 9 "#EF2929"
+            change_color 10 "#8AE234"
+            change_color 11 "#FCE94F"
+            change_color 12 "#729FCF"
+            change_color 13 "#AD7FA8"
+            change_color 14 "#34E2E2"
+            change_color 15 "#EEEEEC"
+            ;;
+        robm)
+            change_color 0 "#000000"
+            change_color 1 "#b45151"
+            change_color 2 "#8ba574"
+            change_color 3 Khaki3
+            change_color 4 "#2797d8"
+            change_color 5 "#aa6eaf"
+            change_color 6 "#418179"
+            change_color 7 "#bebebe"
+            change_color 8 "#666666"
+            change_color 9 "#fe8686"
+            change_color 10 "#a5dca5"
+            change_color 11 "#efe58b"
+            change_color 12 "#86cdea"
+            change_color 13 "#b698b8"
+            change_color 14 "#71bebe"
+            change_color 15 "#ffffff"
+            ;;
+        *)
+            echo "'$1' is not a color palette"
+            ;;
+    esac
+}
+
+function colorscheme
+{
+    case $1 in
+        tango)
+            color_palette tango
+            change_cursor "#FFFFFF"
+            change_foreground "#FFFFFF"
+            change_background "#000000"
+            ;;
+        tango-grey)
+            color_palette tango
+            change_cursor "#AAAAAA"
+            change_foreground "#AAAAAA"
+            change_background "#000000"
+            ;;
+        robm)
+            color_palette robm
+            change_cursor "#d8d8d8"
+            change_foreground "#51a366"
+            change_background "#111111"
+            ;;
+        *)
+            echo "'$1' is not a color scheme"
+            ;;
+    esac
+}
+colorscheme "$1"

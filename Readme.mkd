@@ -1,3 +1,21 @@
+## term-font
+
+Uses escape codes to change the font from within an instance of urxvt.
+
+---
+
+## term-colors
+
+Uses escape codes to change the ansi colors from within a terminal. Follows
+XTerm protocol so should work with any XTerm compatible terminal. Tested to
+work with the following terminals:
+
+ * xterm
+ * rxvt-unicode
+ * gnome-terminal
+
+---
+
 ## genlinks
 
 Takes a directory as the first argument. Removes all (non '.' prefixed)
