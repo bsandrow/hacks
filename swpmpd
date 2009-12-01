@@ -1,0 +1,41 @@
+#!/bin/bash
+
+LDIR="/etc"         # the directory of the link
+LNAME="mpd.conf"    # the name of the link
+CONFDIR="/etc/mpd"  # the directory with the .conf files
+RELPATH="mpd"       # the relative path from the link to the $CONFDIR
+
+case $1 in
+    current)
+        readlink "$LDIR/$LNAME" | sed "s:^$RELPATH/::"
+        ;;
+    list)
+        cd "$CONFDIR"
+        ls -1 *.conf
+        ;;
+    swap)
+        config="$2"
+        if [ -f "$CONFDIR/$2" ]; then
+            config="$2"
+        else
+            if [ -f "$CONFDIR/$2.conf" ]; then
+                config="$2.conf"
+            else
+                echo "Config $CONFDIR/$2 or $CONFDIR/$2.conf doesn't exist!" >&2
+                exit 1
+            fi
+        fi
+        cd "$LDIR"
+        sudo rm "$LNAME"
+        sudo ln -s "$RELPATH/$config" "$LNAME"
+        sudo init.d/mpd restart
+        ;;
+    *)
+        cat <<EOF
+Commands:
+current - shows the current config
+list    - lists all available configs
+swap    - swaps to a specified config (the .conf at the end is optional)
+EOF
+        ;;
+esac
