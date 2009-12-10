@@ -31,6 +31,24 @@ function change_cursor
 function color_palette
 {
     case $1 in
+        jhe)
+            change_color 0 "#222222"
+            change_color 1 "#9e1828"
+            change_color 2 "#aece92"
+            change_color 3 "#968a38"
+            change_color 4 "#71C5F4"
+            change_color 5 "#963c59"
+            change_color 6 "#418179"
+            change_color 7 "#bebebe"
+            change_color 8 "#666666"
+            change_color 9 "#cf6171"
+            change_color 10 "#c5f779"
+            change_color 11 "#fff796"
+            change_color 12 "#67CDE9"
+            change_color 13 "#cf9ebe"
+            change_color 14 "#71bebe"
+            change_color 15 "#FFFFFF"
+            ;;
         tango)
             change_color 0 "#2E3436"
             change_color 1 "#CC0000"
@@ -93,6 +111,12 @@ function colorscheme
             change_cursor "#d8d8d8"
             change_foreground "#51a366"
             change_background "#111111"
+            ;;
+        jhe)
+            color_palette jhe
+            change_cursor "#d8d8d8"
+            change_foreground "#FFFFFF"
+            change_background "#000000"
             ;;
         *)
             echo "'$1' is not a color scheme"
