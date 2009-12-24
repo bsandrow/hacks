@@ -1,0 +1,32 @@
+#!/bin/sh
+
+directory_check()
+{
+    test -d "$*" &&\
+        find "$*" -type d | sed 's:^:":; s:$:":;' | xargs chmod -R 700 &&\
+        find "$*" -type f | sed 's:^:":; s:$:":;' | xargs chmod 600
+}
+
+file_check()
+{
+    test -f "$*" && chmod 600 "$*"
+}
+
+
+file_check "$HOME/.msmtprc"
+file_check "$HOME/.netrc"
+file_check "$HOME/.muttrc"
+
+directory_check "$HOME/.ssh"
+directory_check "$HOME/.mutt"
+
+exit
+
+#@@@@@@@@@@
+#
+# home-perms
+#
+# Just runs through a list of files and/or directories in the home directory.
+# Modifies their permissions to be more restrictive as necessary
+#
+#@@@@@@@@@@
