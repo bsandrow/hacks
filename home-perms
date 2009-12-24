@@ -16,9 +16,11 @@ file_check()
 file_check "$HOME/.msmtprc"
 file_check "$HOME/.netrc"
 file_check "$HOME/.muttrc"
+file_check "$HOME/.offlineimaprc"
 
 directory_check "$HOME/.ssh"
 directory_check "$HOME/.mutt"
+directory_check "$HOME/.offlineimap"
 
 exit
 
