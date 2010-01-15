@@ -85,6 +85,25 @@ function color_palette
             change_color 14 "#71bebe"
             change_color 15 "#ffffff"
             ;;
+        robm-light)
+            change_color 0 "#000000"
+            change_color 8 "#000054"
+            change_color 1 "#A80000"
+            change_color 9 "#AA0054"
+            change_color 2 "#00A800"
+            change_color 10 "#00AA54"
+            change_color 3 "#A8A800"
+            change_color 11 "#AAAA54"
+            change_color 4 "#0000A8"
+            change_color 12 "#0055CC"
+            change_color 5 "#A800A8"
+            change_color 13 "#AA00AA"
+            change_color 6 "#00A8A8"
+            change_color 14 "#00AAAA"
+            change_color 7 "#A8A8A8"
+            change_color 15 "#AAAAAA"
+            ;;
+
         *)
             echo "'$1' is not a color palette"
             ;;
@@ -100,6 +119,12 @@ function colorscheme
             change_foreground "#FFFFFF"
             change_background "#000000"
             ;;
+        tango-light)
+            color_palette tango
+            change_cursor "#000000"
+            change_foreground "#000000"
+            change_background "#FFFFFF"
+            ;;
         tango-grey)
             color_palette tango
             change_cursor "#AAAAAA"
@@ -111,6 +136,12 @@ function colorscheme
             change_cursor "#d8d8d8"
             change_foreground "#51a366"
             change_background "#111111"
+            ;;
+        robm-light)
+            color_palette robm-light
+            change_cursor "black"
+            change_foreground "black"
+            change_background "white"
             ;;
         jhe)
             color_palette jhe
