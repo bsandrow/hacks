@@ -1,0 +1,201 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+
+use YAML::Tiny;
+use Getopt::Long;
+
+use Carp qw/
+    croak
+/;
+
+my $action;
+my $config_file = "$ENV{HOME}/.trmctrlrc";
+my %preferences = ();
+my $action_opts = {
+    palette => ['list|l'],
+    colors  => ['list|l'],
+    font    => ['aa!','ah!','list|l'],
+};
+
+### Main Control Structure ###
+sub main {
+    initialize();
+    my $retval;
+    $retval = $action eq "font"    ? !font_runner()
+            : $action eq "palette" ? !palette_runner()
+            : $action eq "colors"  ? !colors_runner()
+            : usage();
+    exit $retval;
+}
+sub initialize {
+    load_preferences();
+    process_args();
+    check_font_settings() if $action eq 'font';
+    check_colors_settings() if $action eq 'colors';
+    check_palette_settings() if $action eq 'palette';
+}
+sub load_preferences {
+    die_with_msg("Cannot access $config_file") unless -r $config_file;
+    my $yaml = YAML::Tiny->read( $config_file );
+    %preferences = %{ $yaml->[0] } if ref $yaml->[0] eq 'HASH';
+}
+sub process_args {
+    # figure out what action we are taking
+    usage() unless $ARGV[0] and string_in_list($ARGV[0],['colorscheme','colors','palette','font']);
+    $action = shift @ARGV;
+    $action = 'colors' if $action eq 'colorscheme';
+
+    # process the arguments based on the action
+    GetOptions(\%preferences,
+        'help|h',
+        @{$action_opts->{$action}},
+    ) or usage();
+    usage() if $preferences{help};
+}
+sub usage {
+    print <<"EOF";
+trmctrl palette PALETTE
+trmctrl colors[cheme] COLORSCHEME
+trmctrl font [options] FONTNAME
+
+Actions:
+  palette       Changes *only* the color palette. (Leaves the fg/bg/cursor
+                alone)
+  colors        Change the terminal colors. Should work in an fully XTerm
+                compliant terminal emulator. Tested to work in gnome-terminal,
+                urxvt, and xterm.
+  font          Change the terminal font. (Only works in urxvt.)
+
+Global Options:
+  --help, -h    Display this help message and exit
+
+Font Options:
+  --aa,--noaa   Turns antialiasing on/off for XFT fonts.
+  --ah,--noah   Turns autohinting on/off for XFT fonts.
+  --list        Displays a list of currently defined fonts.
+
+Colorscheme Options:
+  --list, -l    Display a list of defined colorschemes
+
+Palette Options:
+  --list, -l    Display a list of defined terminal 16-color palettes
+EOF
+    exit 1;
+}
+sub die_with_msg {
+    print STDERR "Error: @{[ join(' ',@_) ]}.\n";
+    exit 1;
+}
+sub string_in_list {
+    my ($string,$list) = @_;
+    croak "string_in_list() bad ARRAYREF passed." unless ref $list eq 'ARRAY';
+    for (@$list) {
+        return 1 if $string eq "$_";
+    }
+    return 0;
+}
+
+### Font Functions ###
+sub check_font_settings {
+    return 1 if $preferences{list};
+    if(length(@ARGV) != 1) {
+        print STDERR "No font specified.\n";
+        exit 1;
+    }
+    unless(string_in_list($ARGV[0],[keys %{$preferences{fonts}}])) {
+        print STDERR "Font not in list\n";
+        exit 1;
+    }
+    return 1;
+}
+sub font_runner {
+    if($preferences{list}) {
+        print "Fonts:\n";
+        print "  $_\t$preferences{fonts}->{$_}\n" for (keys %{$preferences{fonts}});
+        return 1;
+    }
+
+    my $new_font        = $ARGV[0];
+    my $new_font_string = $preferences{fonts}->{$new_font};
+
+    if(exists $preferences{aa}) {
+        my $change = $preferences{aa} ? 'yes' : 'no';
+        $new_font_string =~ s/antialias=(yes|no)/antialias=$change/;
+    }
+
+    if(exists $preferences{ah}) {
+        my $change = $preferences{ah} ? 'yes' : 'no';
+        $new_font_string =~ s/autohinting=(yes|no)/autohinting=$change/;
+    }
+    print STDOUT "\033]710;$new_font_string\007";
+    return 1;
+}
+
+### Colors Functions ###
+sub check_palette_settings {
+    return 1 if $preferences{list};
+    unless(exists $preferences{palettes}->{$ARGV[0]}) {
+        print STDERR "No such palette $ARGV[0].\n";
+        exit 1;
+    }
+    return 1;
+}
+sub check_colors_settings {
+    return 1 if $preferences{list};
+    my $scheme = $ARGV[0];
+    unless(exists $preferences{colorschemes}->{$scheme}) {
+        print STDERR "No such colorscheme '$scheme'.\n";
+        exit 1;
+    }
+    $scheme = $preferences{colorschemes}->{$scheme};
+    unless(exists $preferences{palettes}->{$scheme->{palette}}) {
+        print STDERR "Corrupt colorscheme. Defined palette '$scheme->{palette}' does not exist.\n";
+        exit 1;
+    }
+    return 1;
+}
+sub palette_runner() {
+    if($preferences{list}) {
+        print "Palettes:\n";
+        print "  $_\n" for (sort keys %{$preferences{palettes}});
+        return 1;
+    }
+    my $palette = $ARGV[0];
+    change_color($_,$preferences{palettes}->{$palette}->{$_})
+        for (keys %{$preferences{palettes}->{$palette}});
+    return 1;
+}
+sub colors_runner() {
+    if($preferences{list}) {
+        print "Colorschemes:\n";
+        print "  $_\n" for (sort keys %{$preferences{colorschemes}});
+        return 1;
+    }
+    my $scheme = $ARGV[0];
+    my $palette = $preferences{colorschemes}->{$scheme}->{palette};
+    change_color($_,$preferences{palettes}->{$palette}->{$_}) for (keys %{$preferences{palettes}->{$palette}});
+    change_foreground($preferences{colorschemes}->{$scheme}->{foreground});
+    change_background($preferences{colorschemes}->{$scheme}->{background});
+    change_cursor($preferences{colorschemes}->{$scheme}->{cursor});
+    return 1;
+}
+sub change_color {
+    my ($color_index,$color_value) = @_;
+    print STDOUT "\033]4;$color_index;$color_value\007";
+}
+sub change_foreground {
+    my $color_value = shift;
+    print STDOUT "\033]10;$color_value\007";
+}
+sub change_background {
+    my $color_value = shift;
+    print STDOUT "\033]11;$color_value\007";
+}
+sub change_cursor {
+    my $color_value = shift;
+    print STDOUT "\033]12;$color_value\007";
+}
+
+main();
