@@ -1,0 +1,4 @@
+#!/bin/bash
+PATTERNS="$1"
+shift
+wget -r -l1 -t1 -nd -N -np -A${PATTERNS} -w5 -erobots=off $*

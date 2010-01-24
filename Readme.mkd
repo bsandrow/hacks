@@ -1,3 +1,17 @@
+## wget-files
+
+Just a wget wrapper for downloading all links that have a particular suffix or
+match a particular pattern. It just passes the first argument verbatim to the
+-A option of wget and everything after that is appended to the wget command
+(after all of the options that I'm turning on by default, of course). So you would normally call it like this:
+
+    wget-files .pdf "http://www.example.com/"
+
+And it would download all of the .pdf files linked to from the example.com
+frontpage into the current directory.
+
+---
+
 ## term-font
 
 Uses escape codes to change the font from within an instance of urxvt.
