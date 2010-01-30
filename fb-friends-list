@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# SOURCE
+#   http://www.commandlinefu.com/commands/view/4726/view-facebook-friend-list-hidden-or-not-hidden
+
+determine_fetcher() {
+    if which lynx >/dev/null 2>&1 ; then
+        echo "lynx -useragent=Opera -dump"
+        return
+    fi
+    which wget >/dev/null 2>&1 && echo "wget -O - --useragent='Opera'"
+}
+
+
+URL="http://www.facebook.com/ajax/typeahead_friends.php?u=$1&__a=1"
+FETCHER=`determine_fetcher`
+
+exec $FETCHER "$URL" |gawk -F'\"t\":\"' -v RS='\",' 'RT{print $NF}' |grep -v '\"n\":\"' |cut -d, -f2
